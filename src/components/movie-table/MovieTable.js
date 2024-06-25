@@ -2,7 +2,7 @@ import { Button, Table, TableBody, TableCell,
     TableContainer, TableHead, TableRow } from "@mui/material";
 import { useEffect, useState } from "react";
 
-function MovieTable(){
+function MovieTable({count}){
     const [movies, setMovies] = useState([]);
 
     useEffect(() => {
@@ -16,7 +16,7 @@ function MovieTable(){
             }
         };
         fetchMovies();
-    }, []);
+    }, [count]);
 
     async function handleDelete(id) {
         try {

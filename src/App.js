@@ -10,6 +10,7 @@ import { createTheme } from '@mui/material';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MovieTable from './components/movie-table/MovieTable';
 import { Movie } from '@mui/icons-material';
+import Movies from './pages/movies/Movies';
 
 const theme = createTheme();
 
@@ -19,8 +20,8 @@ function App() {
       <div>
         <BrowserRouter>
         <Routes>
-          <Route path="/" element={<MovieTable />} />
-          <Route path="*" element={<MovieTable />} />
+          <Route path="/" element={<Movies />} />
+          <Route path="*" element={<Movies />} />
         </Routes>
         </BrowserRouter>
       </div>
