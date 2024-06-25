@@ -18,6 +18,22 @@ function MovieTable(){
         fetchMovies();
     }, []);
 
+    async function handleDelete(id) {
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/movies/${id}`, {
+                method: 'DELETE',
+            }); 
+            if (!response.ok) {
+                throw new Error('Failed to delete movie');
+            }
+            const newMovies = movies.filter((movie) => movie.id !== id);
+            setMovies(newMovies);
+        } catch (error) {
+            console.error(error);
+        }
+        
+    }
+
     return (
        <TableContainer>
         <Table>
@@ -36,7 +52,13 @@ function MovieTable(){
                                 <TableCell>{movie.id}</TableCell>
                                 <TableCell>{movie.title}</TableCell>
                                 <TableCell>
-                                    <Button>Edit</Button>
+                                    <Button color="primary">Edit</Button>
+                                    <Button 
+                                        color="error"
+                                        onClick={() => {handleDelete(movie.id)}}
+                                    >
+                                        Delete
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         );
