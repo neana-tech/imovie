@@ -1,10 +1,13 @@
-import { Button, Table, TableBody, TableCell, 
-    TableContainer, TableHead, TableRow } from "@mui/material";
+import { Button, Tab, Table, TableBody, TableCell, 
+    TableContainer, TableHead, TableRow, 
+    TextField} from "@mui/material";
 import { useEffect, useState } from "react";
 
 function MovieTable({count}){
     const [movies, setMovies] = useState([]);
-
+    const [editingMovieId, setEditingMovieId] = useState(null);
+    const [newMovieTitle, setNewMovieTitle] = useState("");
+    const [editingTitle, setEditingTitle] = useState("");
     useEffect(() => {
         const fetchMovies = async () => {
             try {
@@ -17,6 +20,13 @@ function MovieTable({count}){
         };
         fetchMovies();
     }, [count]);
+    function handleTitleChange(event) {
+        setEditingTitle(event.target.value);
+    }
+    function handleEditMovie(id, title) {
+        setEditingTitle(title);
+        setEditingMovieId(id); 
+    }
 
     async function handleDelete(id) {
         try {
@@ -33,6 +43,63 @@ function MovieTable({count}){
         }
         
     }
+    async function handleSubmit(movieId) {
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/movies/${editingMovieId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: editingTitle,
+                }),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to update movie');
+            }
+            const updatedMovies = movies.map((movie) => {
+                if (movie.id === editingMovieId) {
+                    return {
+                        ...movie,
+                        title: editingTitle,
+                    };
+                }
+                return movie;
+            });
+            setMovies(updatedMovies);
+            setEditingMovieId(null);
+            setEditingTitle('');
+        } catch (error) {
+            console.error(`Error updating movie: ${error}`);
+        }
+    }
+    function handleNewMovieTitle(event) {
+        setNewMovieTitle(event.target.value);
+    }
+    async function handleCreateMovie() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/movies', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: newMovieTitle,
+                }),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to create movie');
+            }
+            const newMovie = await response.json();
+            if (newMovie) {
+                setMovies([...movies, newMovie]);
+                setNewMovieTitle(''); 
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+        
 
     return (
        <TableContainer>
@@ -50,20 +117,55 @@ function MovieTable({count}){
                         return (
                             <TableRow key={movie.id}>
                                 <TableCell>{movie.id}</TableCell>
-                                <TableCell>{movie.title}</TableCell>
                                 <TableCell>
-                                    <Button color="primary">Edit</Button>
+                                    {editingMovieId === movie.id ? (
+                                        <TextField value={editingTitle} onChange={handleTitleChange} />
+                                    ): (
+                                        movie.title
+                                    )}
+                                    
+                                </TableCell>
+                                <TableCell>
+                                    {editingMovieId === movie.id ? (
+                                        <Button color="primary"
+                                        onClick={handleSubmit}
+                                        >Save</Button>
+                                    ) : (
+                                       <>
+                                       <Button color="primary" 
+                                    onClick={() => {handleEditMovie(movie.id, movie.title)}}
+                                    >
+                                        Edit
+                                    </Button>
                                     <Button 
                                         color="error"
                                         onClick={() => {handleDelete(movie.id)}}
                                     >
                                         Delete
-                                    </Button>
+                                        </Button>
+                                       </>
+                                    )}
+                                    
                                 </TableCell>
                             </TableRow>
+
                         );
                     })
                 }
+                <TableRow>
+                    <TableCell></TableCell>
+                    <TableCell>
+                        <TextField
+                            value={newMovieTitle}
+                            onChange={handleNewMovieTitle}
+                            />
+                    </TableCell>
+                    <TableCell>
+                        <Button color="primary" onClick={handleCreateMovie}>
+                            Create 
+                        </Button>
+                    </TableCell>
+                    </TableRow>
             </TableBody>
         </Table>
        </TableContainer>
