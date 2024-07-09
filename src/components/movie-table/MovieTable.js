@@ -1,13 +1,17 @@
 import { Button, Tab, Table, TableBody, TableCell, 
-    TableContainer, TableHead, TableRow, 
+    TableContainer, TableHead, TablePagination, TableRow, 
     TextField} from "@mui/material";
 import { useEffect, useState } from "react";
+import Paper from '@mui/material/Paper';
 
 function MovieTable({count}){
     const [movies, setMovies] = useState([]);
     const [editingMovieId, setEditingMovieId] = useState(null);
     const [newMovieTitle, setNewMovieTitle] = useState("");
     const [editingTitle, setEditingTitle] = useState("");
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+
     useEffect(() => {
         const fetchMovies = async () => {
             try {
@@ -100,8 +104,18 @@ function MovieTable({count}){
         }
     }
         
+    function handleChangePerPage(event, newPage) {
+        setPage(newPage);
+    }
+
+    function handleChangeRowsPerPage(event) {
+        const nums = parseInt(event.target.value, 10);
+        setRowsPerPage(nums);
+        setPage(0);
+    }
 
     return (
+        <Paper>
        <TableContainer>
         <Table>
             <TableHead>
@@ -112,8 +126,9 @@ function MovieTable({count}){
                 </TableRow>
             </TableHead>
             <TableBody>
+
                 {
-                    movies.map((movie) => {
+                    movies.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((movie) => {
                         return (
                             <TableRow key={movie.id}>
                                 <TableCell>{movie.id}</TableCell>
@@ -169,6 +184,15 @@ function MovieTable({count}){
             </TableBody>
         </Table>
        </TableContainer>
+       <TablePagination 
+       component={"div"}
+       count={movies.length}
+       page={page}
+       onPageChange={handleChangePerPage}
+       rowsPerPage={rowsPerPage}
+       onRowsPerPageChange={handleChangeRowsPerPage}
+       ></TablePagination>
+       </Paper>
     );
 }
 export default MovieTable;
