@@ -2,6 +2,7 @@ import { Movie } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import MovieTable from "../../components/movie-table/MovieTable";
 import { useState } from "react";
+import LoadMovieData from "../../components/load-movies-data/LoadMovieData";
 
 const Movies = () => {
 
@@ -27,6 +28,7 @@ const Movies = () => {
       <Button onClick={handleDeleteAll}>
         DELETE ALL
       </Button>
+      <LoadMovieData setCount={setCount}></LoadMovieData>
       <MovieTable count={count}/>
     </div>
   );

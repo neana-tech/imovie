@@ -1,4 +1,4 @@
-import { Button, Tab, Table, TableBody, TableCell, 
+import { Autocomplete, Button, Tab, Table, TableBody, TableCell, 
     TableContainer, TableHead, TablePagination, TableRow, 
     TextField} from "@mui/material";
 import { useEffect, useState } from "react";
@@ -11,7 +11,10 @@ function MovieTable({count}){
     const [editingTitle, setEditingTitle] = useState("");
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-
+    const [order, setOrder] = useState('asc');
+    const [orderby, setOrderby] = useState('id');
+    const [filterId, setFilterId] = useState('');
+    const [filterTitle, setFilterTitle] = useState('');
     useEffect(() => {
         const fetchMovies = async () => {
             try {
@@ -103,7 +106,44 @@ function MovieTable({count}){
             console.error(error);
         }
     }
-        
+    function handleRequestSort(event, property) {
+        const isAsc = orderby === property && order === 'asc';
+        setOrder (isAsc ? 'desc' : 'asc');
+        setOrder (property);         
+    }   
+    function getComparator(order, orderby) {
+        return order === 'desc' 
+        ? (a,b) => descendingComparator(a,b,orderby)
+        : (a,b) => -descendingComparator(a,b,orderby); 
+    }
+    function descendingComparator(a,b,orderby) {
+        if (b[orderby] < a[orderby]) {
+            return -1;
+            }
+            if (b[orderby] > a[orderby]) {
+            return 1;
+            }
+            return 0;
+    }
+    function sortMovies(array, comparator) {
+        const result = array.map ((el, index) => [el,index]); 
+        result.sort ((a,b)=> {
+            const order = comparator(a[0], b[0]); 
+            if (order !== 0 ) return order; 
+            return a[1] - b[1]; 
+        })
+        return result.map ((el)=> el[0]);
+
+
+    }
+    const filteredMovies = movies.filter(movie =>{
+        return (
+            (filterId === '' || movie.id.toString().includes(filterId)) && 
+            (filterTitle === '' || movie.title.toLowerCase().includes(filterTitle.toLowerCase()))
+        );
+    });
+
+    const sortedMovies = sortMovies(filteredMovies, getComparator(order, orderby));
     function handleChangePerPage(event, newPage) {
         setPage(newPage);
     }
@@ -120,15 +160,51 @@ function MovieTable({count}){
         <Table>
             <TableHead>
                 <TableRow>
-                    <TableCell>ID</TableCell>
-                    <TableCell>Title</TableCell>
+                    <TableCell>
+                    <Autocomplete 
+                    options={movies.map(movie => movie.id.toString())}
+                    renderInput={(params)=> (
+                        <TextField 
+                        {...params}
+                        label="Filter Id"
+                        variant="standard"
+                        size="small"
+
+                        ></TextField>
+                    )}
+                    onInputChange={(event, value)=> setFilterId(value)}
+                    getOptionLabel={(option)=> option.toString()}
+                    filterOptions={(options, { inputValue }) =>
+options.filter((option) => option.includes(inputValue)).slice(0, 10)
+}
+                    ></Autocomplete>
+                    </TableCell>
+                    <TableCell>
+                    <Autocomplete 
+                    options={movies.map(movie => movie.title.toString())}
+                    renderInput={(params)=> (
+                        <TextField 
+                        {...params}
+                        label="Filter Title"
+                        variant="standard"
+                        size="small"
+
+                        ></TextField>
+                    )}
+                    onInputChange={(event, value)=> setFilterTitle(value)}
+                    getOptionLabel={(option)=> option.toString()}
+                    filterOptions={(options, { inputValue }) =>
+options.filter((option) => option.includes(inputValue)).slice(0, 10)
+}
+                    ></Autocomplete>
+                    </TableCell>
                     <TableCell>Action</TableCell>
                 </TableRow>
             </TableHead>
             <TableBody>
 
                 {
-                    movies.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((movie) => {
+                    sortedMovies.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((movie) => {
                         return (
                             <TableRow key={movie.id}>
                                 <TableCell>{movie.id}</TableCell>
@@ -186,7 +262,7 @@ function MovieTable({count}){
        </TableContainer>
        <TablePagination 
        component={"div"}
-       count={movies.length}
+       count={sortedMovies.length}
        page={page}
        onPageChange={handleChangePerPage}
        rowsPerPage={rowsPerPage}
